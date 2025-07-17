@@ -21,3 +21,10 @@ This is an extension brought by [jsoncrack.com](https://jsoncrack.com).
 3. Press **F5** to debug
 
 For every change at codebase you should re-do the steps **2 and 3**.
+
+### Configuration
+
+The extension prevents extremely large files from being visualized. By default,
+files larger than **5&nbsp;MB** are not processed. You can override this value by
+setting the `NEXT_PUBLIC_FILE_SIZE_LIMIT_MB` environment variable before running
+`pnpm build`.

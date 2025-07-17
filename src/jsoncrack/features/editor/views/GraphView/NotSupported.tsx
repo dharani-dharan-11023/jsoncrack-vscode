@@ -143,7 +143,7 @@ export const NotSupported = () => {
     <StyledNotSupported>
       <StyledContent>
         <Text c="dimmed" maw="400" my="lg" ta="center">
-          JSON Crack is unable to support data of this size. Please try our new editor for better
+          JSON Crack is unable to support data above the default 5&nbsp;MB limit. Please try our new editor for better
           performance.
         </Text>
         <Button

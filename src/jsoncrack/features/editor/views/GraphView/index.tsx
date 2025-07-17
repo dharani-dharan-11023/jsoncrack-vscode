@@ -12,6 +12,7 @@ import { CustomEdge } from "./CustomEdge";
 import { CustomNode } from "./CustomNode";
 import useGraph from "./stores/useGraph";
 import useFile from "../../../../store/useFile";
+import useJson from "../../../../store/useJson";
 import { FileFormat } from "../../../../enums/file.enum";
 import { NotSupported } from "./NotSupported";
 
@@ -152,12 +153,18 @@ const GraphCanvas = ({ isWidget }: GraphProps) => {
   );
 };
 
-const SUPPORTED_LIMIT = +(process.env.NEXT_PUBLIC_NODE_LIMIT as string) || 1000;
+const SUPPORTED_NODE_LIMIT =
+  +(process.env.NEXT_PUBLIC_NODE_LIMIT as string) || 1000;
+const SUPPORTED_FILE_LIMIT =
+  (+(process.env.NEXT_PUBLIC_FILE_SIZE_LIMIT_MB as string) || 5) * 1024 * 1024;
 
 export const GraphView = ({ isWidget = false, json }: GraphProps) => {
   const setViewPort = useGraph((state) => state.setViewPort);
   const viewPort = useGraph((state) => state.viewPort);
-  const aboveSupportedLimit = useGraph(state => state.nodes.length > SUPPORTED_LIMIT);
+  const aboveSupportedLimit = useGraph(
+    state => state.nodes.length > SUPPORTED_NODE_LIMIT
+  );
+  const fileTooLarge = useJson(state => state.overSizeLimit);
   const loading = useGraph((state) => state.loading);
   const gesturesEnabled = useConfig((state) => state.gesturesEnabled);
   const rulersEnabled = useConfig((state) => state.rulersEnabled);
@@ -195,7 +202,7 @@ export const GraphView = ({ isWidget = false, json }: GraphProps) => {
     }
   }, [json, setContents]);
 
-  if (aboveSupportedLimit) {
+  if (aboveSupportedLimit || fileTooLarge) {
     return <NotSupported />;
   }
 
