@@ -12,6 +12,8 @@ type Traverse = {
   parentType?: string;
   myParentId?: string;
   nextType?: string;
+  limit?: number;
+  limitExceeded?: { current: boolean };
 };
 
 const isPrimitiveOrNullType = (type: unknown): type is PrimitiveOrNullType => {
@@ -35,8 +37,11 @@ function handleNoChildren(
   graph: Graph,
   myParentId?: string,
   parentType?: string,
-  nextType?: string
+  nextType?: string,
+  limit?: number,
+  limitExceeded?: { current: boolean }
 ) {
+  if (limitExceeded?.current) return;
   if (value === undefined) return;
 
   if (parentType === "property" && nextType !== "object" && nextType !== "array") {
@@ -48,6 +53,10 @@ function handleNoChildren(
     }
   } else if (parentType === "array") {
     const nodeFromArrayId = addNodeToGraph({ graph, text: String(value) });
+    if (limit && graph.nodes.length > limit) {
+      limitExceeded && (limitExceeded.current = true);
+      return;
+    }
 
     if (myParentId) {
       addEdgeToGraph(graph, myParentId, nodeFromArrayId);
@@ -65,8 +74,11 @@ function handleHasChildren(
   graph: Graph,
   children: Node[],
   myParentId?: string,
-  parentType?: string
+  parentType?: string,
+  limit?: number,
+  limitExceeded?: { current: boolean }
 ) {
+  if (limitExceeded?.current) return;
   let parentId: string | undefined;
 
   if (type !== "property" && states.parentName !== "") {
@@ -97,6 +109,14 @@ function handleHasChildren(
         }
       } else {
         const brothersNodeId = addNodeToGraph({ graph, text: states.brothersNode });
+        if (limit && graph.nodes.length > limit) {
+          limitExceeded && (limitExceeded.current = true);
+          return;
+        }
+        if (limit && graph.nodes.length > limit) {
+          limitExceeded && (limitExceeded.current = true);
+          return;
+        }
 
         states.brothersNode = [];
 
@@ -116,6 +136,10 @@ function handleHasChildren(
 
     // Add parent node
     parentId = addNodeToGraph({ graph, type, text: states.parentName });
+    if (limit && graph.nodes.length > limit) {
+      limitExceeded && (limitExceeded.current = true);
+      return;
+    }
     states.bracketOpen.push({ id: parentId, type });
     states.parentName = "";
 
@@ -147,6 +171,8 @@ function handleHasChildren(
       parentType: type,
       myParentId: states.bracketOpen[states.bracketOpen.length - 1]?.id,
       nextType,
+      limit,
+      limitExceeded,
     });
   };
 
@@ -155,6 +181,7 @@ function handleHasChildren(
       const nextType = array[index + 1]?.type;
 
       traverseObject(objectToTraverse, nextType);
+      if (limitExceeded?.current) return;
     });
   };
 
@@ -191,6 +218,10 @@ function handleHasChildren(
         }
       } else {
         const brothersNodeId = addNodeToGraph({ graph, text: states.brothersNode });
+        if (limit && graph.nodes.length > limit) {
+          limitExceeded && (limitExceeded.current = true);
+          return;
+        }
 
         states.brothersNode = [];
 
@@ -243,13 +274,34 @@ export const traverse = ({
   myParentId,
   nextType,
   parentType,
+  limit,
+  limitExceeded,
 }: Traverse) => {
+  if (limitExceeded?.current) return;
   const graph = states.graph;
   const { type, children, value } = objectToTraverse;
 
   if (!children) {
-    handleNoChildren(value, states, graph, myParentId, parentType, nextType);
+    handleNoChildren(
+      value,
+      states,
+      graph,
+      myParentId,
+      parentType,
+      nextType,
+      limit,
+      limitExceeded
+    );
   } else if (children) {
-    handleHasChildren(type, states, graph, children, myParentId, parentType);
+    handleHasChildren(
+      type,
+      states,
+      graph,
+      children,
+      myParentId,
+      parentType,
+      limit,
+      limitExceeded
+    );
   }
 };

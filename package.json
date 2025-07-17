@@ -130,6 +130,7 @@
   },
   "dependencies": {
     "eslint-plugin-unused-imports": "^4.1.4",
+    "lodash.debounce": "^4.0.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "reaflow": "5.2.11",

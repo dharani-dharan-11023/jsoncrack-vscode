@@ -45,16 +45,20 @@ function initializeStates(): States {
   };
 }
 
-export function parser(jsonStr: string): Graph {
+export function parser(
+  jsonStr: string,
+  limit: number = Infinity
+  ): { graph: Graph; limitExceeded: boolean } {
   try {
     const states = initializeStates();
+    const limitExceeded = { current: false };
     const parsedJsonTree = parseTree(jsonStr);
 
     if (!parsedJsonTree) {
       throw new Error("Invalid document");
     }
 
-    traverse({ states, objectToTraverse: parsedJsonTree });
+    traverse({ states, objectToTraverse: parsedJsonTree, limit, limitExceeded });
 
     const { notHaveParent, graph } = states;
 
@@ -78,9 +82,9 @@ export function parser(jsonStr: string): Graph {
       path: getNodePath(states.graph.nodes, states.graph.edges, node.id),
     }));
 
-    return states.graph;
+    return { graph: states.graph, limitExceeded: limitExceeded.current };
   } catch (error) {
     console.error(error);
-    return { nodes: [], edges: [] };
+    return { graph: { nodes: [], edges: [] }, limitExceeded: false };
   }
 }
