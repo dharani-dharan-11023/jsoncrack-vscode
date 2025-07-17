@@ -4,6 +4,7 @@ import { create } from "zustand";
 import useJson from "../../../../../store/useJson";
 import type { EdgeData, NodeData } from "../../../../../types/graph";
 import { parser } from "../lib/jsonParser";
+import { NODE_LIMIT } from "../../../../constants";
 import { getChildrenEdges } from "../lib/utils/getChildrenEdges";
 import { getOutgoers } from "../lib/utils/getOutgoers";
 
@@ -72,7 +73,17 @@ const useGraph = create<Graph & GraphActions>((set, get) => ({
   getCollapsedEdgeIds: () => get().collapsedEdges,
   setSelectedNode: nodeData => set({ selectedNode: nodeData }),
   setGraph: (data, options) => {
-    const { nodes, edges } = parser(data ?? useJson.getState().json);
+    const { graph, limitExceeded } = parser(
+      data ?? useJson.getState().json,
+      NODE_LIMIT
+    );
+    const { nodes, edges } = graph;
+
+    if (limitExceeded) {
+      useJson.getState().setOverNodeLimit(true);
+      set({ nodes: [], edges: [], loading: false });
+      return;
+    }
 
     if (get().collapseAll) {
       set({ nodes, edges, ...options });

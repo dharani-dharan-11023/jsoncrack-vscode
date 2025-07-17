@@ -25,6 +25,7 @@ For every change at codebase you should re-do the steps **2 and 3**.
 ### Configuration
 
 The extension prevents extremely large files from being visualized. By default,
-files larger than **5&nbsp;MB** are not processed. You can override this value by
-setting the `NEXT_PUBLIC_FILE_SIZE_LIMIT_MB` environment variable before running
-`pnpm build`.
+files larger than **5&nbsp;MB** or JSON graphs with more than **1000** nodes are
+not processed. You can override these values by setting the
+`NEXT_PUBLIC_FILE_SIZE_LIMIT_MB` and `NEXT_PUBLIC_NODE_LIMIT` environment
+variables before running `pnpm build`.

@@ -1,16 +1,19 @@
 import { create } from "zustand";
 import useGraph from "../features/editor/views/GraphView/stores/useGraph";
+import { FILE_SIZE_LIMIT_BYTES } from "../constants";
 
 interface JsonActions {
   setJson: (json: string) => void;
   getJson: () => string;
   clear: () => void;
+  setOverNodeLimit: (value: boolean) => void;
 }
 
 const initialStates = {
   json: "",
   loading: true,
   overSizeLimit: false,
+  overNodeLimit: false,
 };
 
 export type JsonStates = typeof initialStates;
@@ -19,12 +22,9 @@ const useJson = create<JsonStates & JsonActions>()((set, get) => ({
   ...initialStates,
   getJson: () => get().json,
   setJson: json => {
-    const SIZE_LIMIT =
-      (+(process.env.NEXT_PUBLIC_FILE_SIZE_LIMIT_MB as string) || 5) *
-      1024 * 1024;
-    const overLimit = json.length > SIZE_LIMIT;
+    const overLimit = json.length > FILE_SIZE_LIMIT_BYTES;
 
-    set({ json, loading: false, overSizeLimit: overLimit });
+    set({ json, loading: false, overSizeLimit: overLimit, overNodeLimit: false });
 
     if (overLimit) {
       useGraph.getState().clearGraph();
@@ -40,9 +40,10 @@ const useJson = create<JsonStates & JsonActions>()((set, get) => ({
     }
   },
   clear: () => {
-    set({ json: "", loading: false, overSizeLimit: false });
+    set({ json: "", loading: false, overSizeLimit: false, overNodeLimit: false });
     useGraph.getState().clearGraph();
   },
+  setOverNodeLimit: value => set({ overNodeLimit: value }),
 }));
 
 export default useJson;
